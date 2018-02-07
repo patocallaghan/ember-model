@@ -1,8 +1,10 @@
-import {module, test} from 'qunit';
+import { run } from '@ember/runloop';
+import { Promise as EmberPromise } from 'rsvp';
+import { module, test } from 'qunit';
 var Model, container;
 
 function ajaxSuccess(data) {
-  return new Ember.RSVP.Promise(function(resolve, reject) {
+  return new EmberPromise(function(resolve, reject) {
     resolve(data);
   });
 }
@@ -26,7 +28,7 @@ module("Ember.RecordArray", {
 
 test("load creates records with container when container exists", function(assert) {
   var records = Ember.RecordArray.create({modelClass: Model, container: container});
-  Ember.run(records, records.load, Model, Model.FIXTURES);
+  run(records, records.load, Model, Model.FIXTURES);
   records.forEach(function(record){
     assert.ok(record.get('isLoaded'));
     assert.ok(record.get('container'));
@@ -34,7 +36,7 @@ test("load creates records with container when container exists", function(asser
 });
 
 test("when called with findMany, should contain an array of the IDs contained in the RecordArray", function(assert) {
-  var records = Ember.run(Model, Model.find, [1,2,3]);
+  var records = run(Model, Model.find, [1,2,3]);
 
   assert.deepEqual(records.get('_ids'), [1,2,3]);
   assert.equal(records.get('length'), 0);
@@ -68,7 +70,7 @@ test("findAll RecordArray implements reload", function(assert) {
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findAll();
   });
 
@@ -77,7 +79,7 @@ test("findAll RecordArray implements reload", function(assert) {
   data.push({id: 3, name: 'Ray'});
   data[1].name = 'Amos';
 
-  Ember.run(function() {
+  run(function() {
     records.reload();
   });
 
@@ -108,7 +110,7 @@ test("findQuery RecordArray implements reload", function(assert) {
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findQuery({name: 'Erik'});
   });
 
@@ -117,7 +119,7 @@ test("findQuery RecordArray implements reload", function(assert) {
   data.push({id: 3, name: 'Ray'});
   data[1].name = 'Amos';
 
-  Ember.run(function() {
+  run(function() {
     records.reload();
   });
 
@@ -152,7 +154,7 @@ test("findMany RecordArray implements reload", function(assert) {
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.find([1,2]);
   });
 
@@ -160,7 +162,7 @@ test("findMany RecordArray implements reload", function(assert) {
 
   data[1].name = 'Amos';
 
-  Ember.run(function() {
+  run(function() {
     records.reload();
   });
 
@@ -192,7 +194,7 @@ test("reload handles record removal", function(assert) {
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findAll();
   });
 
@@ -200,7 +202,7 @@ test("reload handles record removal", function(assert) {
 
   data.splice(1, 1);
 
-  Ember.run(function() {
+  run(function() {
     records.reload();
   });
 
@@ -229,7 +231,7 @@ test("RecordArray handles already inserted new models being saved", function(ass
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findAll();
   });
 
@@ -239,7 +241,7 @@ test("RecordArray handles already inserted new models being saved", function(ass
 
   records.pushObject(newModel);
 
-  Ember.run(function() {
+  run(function() {
     newModel.save();
   });
 

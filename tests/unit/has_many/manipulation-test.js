@@ -1,4 +1,5 @@
-import {module, test} from 'qunit';
+import { run } from '@ember/runloop';
+import { module, test } from 'qunit';
 var attr = Ember.attr;
 
 module("Ember.HasManyArray - manipulation");
@@ -28,13 +29,13 @@ test("pushing record without an id adds a reference to the content", function(as
   ];
 
   var article = Article.create();
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   var comments = article.get('comments');
 
   var comment = Comment.create({ text: 'quatro' });
 
-  Ember.run(comments, comments.pushObject, comment);
+  run(comments, comments.pushObject, comment);
 
   var content = comments.get('content');
   assert.equal(comments.get('length'), 4);
@@ -67,7 +68,7 @@ test('adding and reverting an existing record to a many array', function(assert)
   ];
 
   var article = Article.create();
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   assert.equal(article.get('comments.length'), 1, 'should have 1 comment');
   assert.equal(article.get('isDirty'), false, 'should not be dirty');
@@ -111,7 +112,7 @@ test('adding and reverting a new record to a many array', function(assert) {
   ];
 
   var article = Article.create();
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   assert.equal(article.get('comments.length'), 1, 'should have 1 comment');
   assert.equal(article.get('isDirty'), false, 'should not be dirty');
@@ -153,7 +154,7 @@ test("removing a record from the many array", function(assert) {
   ];
 
   var article = Article.create();
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   var comments = article.get('comments'),
       dos = comments.objectAt(1);
@@ -194,7 +195,7 @@ test("setting a has many array with empty array", function(assert) {
   ];
 
   var article = Article.create();
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   assert.equal(article.get('comments.length'), 3, "should be 3 comments");
 
@@ -233,7 +234,7 @@ test("setting a has many array with item array", function(assert) {
   ];
 
   var article = Article.create();
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   assert.equal(article.get('comments.length'), 3, "should be 3 comments");
 
@@ -272,7 +273,7 @@ test("setting a hasMany array with setObjects", function(assert) {
   ];
 
   var article = Article.create();
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   assert.equal(article.get('comments.length'), 3, "should be 3 comments");
 

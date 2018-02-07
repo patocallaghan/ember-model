@@ -1,4 +1,6 @@
-import {module, test} from 'qunit';
+import { all } from 'rsvp';
+import { run } from '@ember/runloop';
+import { module, test } from 'qunit';
 var attr = Ember.attr;
 
 module("Ember.HasManyArray - objects loading");
@@ -35,16 +37,16 @@ test("loads objects based on their ids", function(assert) {
 
   assert.equal(comments.get('length'), 0);
 
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   let done = assert.async();
   var commentPromises = comments.toArray().map(function(c) { return Ember.loadPromise(c); });
-  var promise = Ember.RSVP.all(commentPromises);
+  var promise = all(commentPromises);
   promise.then(function() {
     done();
     assert.equal(comments.get('length'), 3, "There are 3 comments");
-    assert.ok(Ember.run(comments, comments.get, 'firstObject') instanceof Comment, "The first object is a Comment object");
-    assert.deepEqual(Ember.run(comments, comments.mapBy, 'text'), ['uno', 'dos', 'tres'], "The comments are loaded");
+    assert.ok(run(comments, comments.get, 'firstObject') instanceof Comment, "The first object is a Comment object");
+    assert.deepEqual(run(comments, comments.mapBy, 'text'), ['uno', 'dos', 'tres'], "The comments are loaded");
     assert.ok(!comments.isEvery('isNew'), "Records should not be new");
   });
 });

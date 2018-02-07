@@ -1,4 +1,5 @@
-import {module, test} from 'qunit';
+import { run } from '@ember/runloop';
+import { module, test } from 'qunit';
 var attr = Ember.attr;
 
 module("Ember.attr");
@@ -17,7 +18,7 @@ test("getAttr hook is called when attribute is fetched", function(assert) {
     return value.toUpperCase();
   };
 
-  Ember.run(function() {
+  run(function() {
     page.load(1, { title: 'teh article' });
   });
 
@@ -31,7 +32,7 @@ test("attr should not change null to object", function(assert) {
   });
   var page = Page.create();
 
-  Ember.run(function() {
+  run(function() {
     page.load(1, {author: null});
   });
 
@@ -55,7 +56,7 @@ test("attr should deserialize when type has a deserialize method", function(asse
 
   var post = Post.create();
 
-  Ember.run(function() {
+  run(function() {
     post.load(1, {time: "11:39"});
   });
 
@@ -75,7 +76,7 @@ test("attr should serialize when type has a serialize method", function(assert) 
   });
 
   var post;
-  Ember.run(function() {
+  run(function() {
     post = Post.create({time: {hour: 10, min: 11}});
   });
 
@@ -97,7 +98,7 @@ test("attr should know how to serialize some built in objects", function(assert)
   });
 
   var post, date = new Date(Date.UTC(2001,0,1, 10, 15, 33));
-  Ember.run(function() {
+  run(function() {
     post = Post.create({date: date, count: '3', null_date: null, null_number: null, zero_count: 0});
   });
 
@@ -129,7 +130,7 @@ test("attr should know how to deserialize some built in objects", function(asser
 
   var post = Post.create();
 
-  Ember.run(function() {
+  run(function() {
     post.load(1, {
       date:         '2001-01-01T10:15:33Z',
       count:        '3',
@@ -160,7 +161,7 @@ test("attr should camelize attributes when reading", function(assert) {
 
   var page = Page.create();
 
-  Ember.run(function() {
+  run(function() {
     page.load(1, {some_author: "Alex"});
   });
 
@@ -174,7 +175,7 @@ test("attr should camelize attributes when writing", function(assert) {
   });
   Page.camelizeKeys = true;
   var page;
-  Ember.run(function() {
+  run(function() {
     page = Page.create({someAuthor: "Alex"});
   });
 
@@ -190,7 +191,7 @@ test("toJSON should respect the key option in attr", function(assert) {
   });
   var page = Page.create();
 
-  Ember.run(function() {
+  run(function() {
     page.load(1, { Author: "Guilherme" });
   });
 
@@ -254,7 +255,7 @@ test("attr should handle default values", function(assert) {
   var novel = Book.create();
   var coloringBook = Book.create();
 
-  Ember.run(function() {
+  run(function() {
     novel.load(1, { author: "Jane" });
     coloringBook.load(1, { });
   });

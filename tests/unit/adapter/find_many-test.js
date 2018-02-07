@@ -1,4 +1,6 @@
-import {module, test} from 'qunit';
+import { run } from '@ember/runloop';
+import { Promise as EmberPromise } from 'rsvp';
+import { module, test } from 'qunit';
 module("Ember.Adapter#findMany");
 
 test(".find([]) delegates to the adapter's findMany method", function(assert) {
@@ -11,9 +13,9 @@ test(".find([]) delegates to the adapter's findMany method", function(assert) {
       assert.ok(adapterRecords instanceof Ember.RecordArray, "RecordArray is passed into Adapter#findMany");
       assert.deepEqual(ids, [1,2,3], "IDs are passed into Adapter#findMany");
 
-      return new Ember.RSVP.Promise(function(resolve, reject) {
+      return new EmberPromise(function(resolve, reject) {
         setTimeout(function() {
-          Ember.run(adapterRecords, adapterRecords.load, klass, []);
+          run(adapterRecords, adapterRecords.load, klass, []);
           resolve(adapterRecords);
         });
       });
@@ -22,7 +24,7 @@ test(".find([]) delegates to the adapter's findMany method", function(assert) {
 
   var records;
 
-  Ember.run(function() {
+  run(function() {
     records = Model.find([1,2,3]);
   });
 

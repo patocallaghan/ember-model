@@ -1,4 +1,5 @@
-import {module, test} from 'qunit';
+import { run } from '@ember/runloop';
+import { module, test } from 'qunit';
 var FixtureModel, adapter;
 
 module("Ember.FixtureAdapter", {
@@ -39,7 +40,7 @@ test("fetch loads the desired FIXTURE payload when the id (int) is specified", f
 
   FixtureModel.FIXTURES = data;
 
-  Ember.run(FixtureModel, FixtureModel.fetch, [1]).then(function(records) {
+  run(FixtureModel, FixtureModel.fetch, [1]).then(function(records) {
     done();
     assert.equal(records.get('length'), 1, "The proper number of items should have been loaded.");
   });
@@ -57,7 +58,7 @@ test("fetch loads the desired FIXTURE payload when the id (string) is specified"
 
   FixtureModel.FIXTURES = data;
 
-  Ember.run(FixtureModel, FixtureModel.fetch, ["1"]).then(function(records) {
+  run(FixtureModel, FixtureModel.fetch, ["1"]).then(function(records) {
     done();
     assert.equal(records.get('length'), 1, "The proper number of items should have been loaded.");
   });
@@ -76,7 +77,7 @@ test("createRecord", function(assert) {
   assert.ok(!record.get('id'), "Record #id should be undefined");
 
   // Ember.run(record, record.save);
-  Ember.run(record, record.save).then(function(record) {
+  run(record, record.save).then(function(record) {
     done();
     assert.equal(record.get('id'), "fixture-0", "Value to Record #id should be assigned");
   });
@@ -91,7 +92,7 @@ test("createRecord - handle the case when the `rootKey` property is set", functi
 
   var record = FixtureModel.create({name: "Erik"});
 
-  Ember.run(record, record.save).then(function () {
+  run(record, record.save).then(function () {
     done();
     var record = FixtureModel.find("fixture-0");
     assert.deepEqual(record.get("_data"), {id: "fixture-0", name: "Erik"}, "Data is set correctly");

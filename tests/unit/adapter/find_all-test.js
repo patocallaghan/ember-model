@@ -1,4 +1,6 @@
-import {module, test} from 'qunit';
+import { resolve, reject } from 'rsvp';
+import { run } from '@ember/runloop';
+import { module, test } from 'qunit';
 module("Ember.Adapter#findAll");
 
 test("Model.find() delegates to Adapter#findAll", function(assert) {
@@ -12,7 +14,7 @@ test("Model.find() delegates to Adapter#findAll", function(assert) {
     {id: 1, name: 'Erik'}
   ];
 
-  var records = Ember.run(Model, Model.find);
+  var records = run(Model, Model.find);
   assert.ok(records instanceof Ember.RecordArray, "RecordArray is returned");
   assert.ok(!records.get('isLoaded'));
   assert.ok(records.get('isLoading'));
@@ -31,7 +33,7 @@ test("Model.find() delegates to Adapter#findAll", function(assert) {
 test("Model.find() returns the same RecordArray for each successful call", function(assert) {
   var Model = Ember.Model.extend();
   Model.adapter = {
-    findAll: Ember.RSVP.resolve
+    findAll: resolve
   };
 
   var firstResult = Model.find();
@@ -43,11 +45,11 @@ test("Model.find() returns the same RecordArray for each successful call", funct
 test("Model.find() returns a new RecordArray if the last call failed", function(assert) {
   var Model = Ember.Model.extend();
   Model.adapter = {
-    findAll: Ember.RSVP.reject
+    findAll: reject
   };
 
   var firstResult, secondResult;
-  Ember.run(function() {
+  run(function() {
     firstResult = Model.find();
   });
   secondResult = Model.find();

@@ -1,4 +1,8 @@
-import {module, test} from 'qunit';
+import Application from '@ember/application';
+import { run } from '@ember/runloop';
+import ComputedProperty from '@ember/object/computed';
+import { module, test } from 'qunit';
+import expectAssertion from 'ember-model/tests/helpers/expect-assertion';
 module("Ember.belongsTo");
 
 test("it exists", function(assert) {
@@ -14,7 +18,7 @@ test("is a CP macro", function(assert) {
         article: cp
       });
 
-  assert.ok(cp instanceof Ember.ComputedProperty);
+  assert.ok(cp instanceof ComputedProperty);
 });
 
 test("using it in a model definition", function(assert) {
@@ -28,8 +32,8 @@ test("using it in a model definition", function(assert) {
   Article.primaryKey = 'slug';
 
   var comment = Comment.create();
-  Ember.run(comment, comment.load, 1, { article: { slug: 'first-article' } });
-  var article = Ember.run(comment, comment.get, 'article');
+  run(comment, comment.load, 1, { article: { slug: 'first-article' } });
+  var article = run(comment, comment.get, 'article');
 
   assert.equal(article.get('slug'), 'first-article');
   assert.ok(article instanceof Article);
@@ -46,8 +50,8 @@ test("model can be specified with a string instead of a class", function(assert)
   Article.primaryKey = 'slug';
 
   var comment = Comment.create();
-  Ember.run(comment, comment.load, 1, { article: { slug: 'first-article' } });
-  var article = Ember.run(comment, comment.get, 'article');
+  run(comment, comment.load, 1, { article: { slug: 'first-article' } });
+  var article = run(comment, comment.get, 'article');
 
   assert.equal(article.get('slug'), 'first-article');
   assert.ok(article instanceof Article);
@@ -55,8 +59,8 @@ test("model can be specified with a string instead of a class", function(assert)
 
 test("model can be specified with a string to a resolved path", function(assert) {
   var App;
-  Ember.run(function() {
-    App = Ember.Application.create({});
+  run(function() {
+    App = Application.create({});
   });
   App.Article  = Ember.Model.extend({
       id: Ember.attr(String)
@@ -66,12 +70,12 @@ test("model can be specified with a string to a resolved path", function(assert)
     });
 
   var comment = App.Comment.create({container: App.__container__});
-  Ember.run(comment, comment.load, 1, { article: { id: 'a' } });
-  var article = Ember.run(comment, comment.get, 'article');
+  run(comment, comment.load, 1, { article: { id: 'a' } });
+  var article = run(comment, comment.get, 'article');
 
   assert.equal(article.get('id'), 'a');
   assert.ok(article instanceof App.Article);
-  Ember.run(App, 'destroy');
+  run(App, 'destroy');
 });
 
 test("non embedded belongsTo should get a record by its id", function(assert) {
@@ -87,8 +91,8 @@ test("non embedded belongsTo should get a record by its id", function(assert) {
   Article.FIXTURES = [{ slug: 'first-article' }];
 
   var comment = Comment.create();
-  Ember.run(comment, comment.load, 1, { article_slug: 'first-article'  });
-  var article = Ember.run(comment, comment.get, 'article');
+  run(comment, comment.load, 1, { article_slug: 'first-article'  });
+  var article = run(comment, comment.get, 'article');
 
   let done = assert.async();
   article.one('didLoad', function() {
@@ -111,12 +115,12 @@ test("relationship should be refreshed when data changes", function(assert) {
   Article.FIXTURES = [{ slug: 'first-article' }];
 
   var comment = Comment.create();
-  var article = Ember.run(comment, comment.get, 'article');
+  var article = run(comment, comment.get, 'article');
 
   assert.ok(!article, "belongsTo relationship should default to null if there is no primaryKey defined");
 
-  Ember.run(comment, comment.load, 1, { article_slug: 'first-article'  });
-  article = Ember.run(comment, comment.get, 'article');
+  run(comment, comment.load, 1, { article_slug: 'first-article'  });
+  article = run(comment, comment.get, 'article');
 
   let done = assert.async();
   article.one('didLoad', function() {
@@ -139,7 +143,7 @@ test("when fetching an association getBelongsTo is called", function(assert) {
   Article.primaryKey = 'slug';
 
   var comment = Comment.create();
-  Ember.run(comment, comment.load, 1, { article_slug: 'first-article'  });
+  run(comment, comment.load, 1, { article_slug: 'first-article'  });
 
   comment.getBelongsTo = function(key, type, meta) {
     assert.equal(key, 'article_slug', "key passed to getBelongsTo should be the same as key in belongsTo options");
@@ -169,7 +173,7 @@ test("toJSON uses the given relationship key in belongsTo", function(assert) {
 
   var comment = Comment.create();
 
-  Ember.run(comment, comment.load, 1, { article_id: 2 });
+  run(comment, comment.load, 1, { article_id: 2 });
 
   assert.deepEqual(comment.toJSON(), { article_id: 2 }, "belongsTo id should be serialized only under the given key");
 });
@@ -191,12 +195,12 @@ test("un-embedded belongsTo CP should handle set", function(assert) {
   var post = Post.create(),
       author = Author.create();
 
-  Ember.run(function() {
+  run(function() {
     author.load(100, {id: 100});
     post.load(1, {id: 1, author_id: null});
   });
 
-  Ember.run(function() {
+  run(function() {
     post.set('author', author);
   });
 
@@ -221,12 +225,12 @@ test("embedded belongsTo CP should handle set", function(assert) {
   var post = Post.create(),
       author = Author.create();
 
-  Ember.run(function() {
+  run(function() {
     author.load(100, {id: 100});
     post.load(1, {id: 1, author_id: null});
   });
 
-  Ember.run(function() {
+  run(function() {
     post.set('author', author);
   });
 
@@ -251,7 +255,7 @@ test("must be set with value of same type", function(assert) {
   var post = Post.create(),
       postTwo = Post.create();
 
-  Ember.run(function() {
+  run(function() {
     post.load(1, {id: 1, author_id: null});
     postTwo.load(2, {id: 2, author_id: null});
   });
@@ -278,7 +282,7 @@ test("relationship type cannot be empty", function(assert) {
 
   var post = Post.create(),
     author = Author.create();
-  Ember.run(function() {
+  run(function() {
     post.load(1, {id: 1, author_id: author});
   });
 
@@ -302,7 +306,7 @@ test("should be able to set embedded relationship to null", function(assert) {
   Comment.adapter = Ember.FixtureAdapter.create();
 
   var comment = Comment.create();
-  Ember.run(comment, comment.load, 1, { article: null });
+  run(comment, comment.load, 1, { article: null });
 
   assert.equal(comment.get('article'), null); // Materialize the data.
   comment.set('text', 'I totally agree');
@@ -326,12 +330,12 @@ test("should be able to set nonembedded relationship to null", function(assert) 
   var post = Post.create(),
       author = Post.create();
 
-  Ember.run(function() {
+  run(function() {
     post.load(1, {id: 1, author_id: 100});
     author.load(100, {id: 100});
   });
 
-  Ember.run(function() {
+  run(function() {
     post.set('author', null);
   });
 
@@ -353,7 +357,7 @@ test("materializing the relationship should should not dirty the record", functi
   Post.adapter = Ember.FixtureAdapter.create();
   Author.adapter = Ember.FixtureAdapter.create();
 
-  var post = Ember.run(Post, Post.create);
+  var post = run(Post, Post.create);
   post.get('id');
   assert.ok(!post.get('isDirty'), 'is not dirty before materializing the relationship');
   post.get('author');
@@ -378,12 +382,12 @@ test("setting relationship should make parent dirty", function(assert) {
   var post = Post.create(),
       author = Author.create();
 
-  Ember.run(function() {
+  run(function() {
     author.load(100, {id: 100, name: 'bob'});
     post.load(1, {id: 1, author_id: null});
   });
 
-  Ember.run(function() {
+  run(function() {
     post.set('author', author);
   });
 
@@ -409,13 +413,13 @@ test("setting existing nonembedded relationship should make parent dirty", funct
       author = Author.create(),
       secondAuthor = Author.create();
 
-  Ember.run(function() {
+  run(function() {
     author.load(100, {id: 100, name: 'bob'});
     secondAuthor.load(101, {id: 101, name: 'ray'});
     post.load(1, {id: 1, author_id: 100});
   });
 
-  Ember.run(function() {
+  run(function() {
     post.set('author', secondAuthor);
   });
 
@@ -441,13 +445,13 @@ test("setting existing nonembedded relationship to NULL should make parent dirty
       author = Author.create(),
       secondAuthor = Author.create();
 
-  Ember.run(function() {
+  run(function() {
     author.load(100, {id: 100, name: 'bob'});
     secondAuthor.load(101, {id: 101, name: 'ray'});
     post.load(1, {id: 1, author_id: 100});
   });
 
-  Ember.run(function() {
+  run(function() {
     post.set('author', null);
   });
 
@@ -473,7 +477,7 @@ test("relationships should be seralized when specified with string", function(as
   var post = Ember.Post.create(),
       author = Ember.Author.create();
 
-  Ember.run(function() {
+  run(function() {
     author.load(100, {id: 100, name: 'bob'});
     post.load(1, {id: 1, author_id: 100});
   });
@@ -677,7 +681,7 @@ test("embedded belongsTo with undefined value", function(assert) {
   Post.adapter = Ember.FixtureAdapter.create();
 
   var post = Post.create();
-  Ember.run(post, post.load, json.id, json);
+  run(post, post.load, json.id, json);
   assert.equal(post.get('author'), null);
 });
 
@@ -697,15 +701,15 @@ test("key defaults to model's property key", function(assert) {
 
   var comment = Comment.create();
 
-  Ember.run(comment, comment.load, 1, { article: 2 });
+  run(comment, comment.load, 1, { article: 2 });
 
   assert.deepEqual(comment.toJSON(), { article: 2 });
 });
 
 test("non embedded belongsTo should return a record with a container", function(assert) {
   var App;
-  Ember.run(function() {
-    App = Ember.Application.create({});
+  run(function() {
+    App = Application.create({});
   });
   App.Article = Ember.Model.extend({
     id: Ember.attr(String)
@@ -718,8 +722,8 @@ test("non embedded belongsTo should return a record with a container", function(
   App.Article.FIXTURES = [{ id: 'first-article' }];
 
   var comment = App.Comment.create({container: App.__container__});
-  Ember.run(comment, comment.load, 1, { article_slug: 'first-article'  });
-  var article = Ember.run(comment, comment.get, 'article');
+  run(comment, comment.load, 1, { article_slug: 'first-article'  });
+  var article = run(comment, comment.get, 'article');
   assert.ok(article.get('container'));
-  Ember.run(App, 'destroy');
+  run(App, 'destroy');
 });

@@ -1,4 +1,5 @@
-import {module, test} from 'qunit';
+import { run } from '@ember/runloop';
+import { module, test } from 'qunit';
 module("find coalescing");
 
 test("multiple calls to Model#find within the same run loop coalesce into a findMany call", function(assert) {
@@ -17,7 +18,7 @@ test("multiple calls to Model#find within the same run loop coalesce into a find
     }
   };
 
-  Ember.run(function() {
+  run(function() {
     Model.find(1);
     Model.find(2);
     Model.find(3);
@@ -39,10 +40,10 @@ test("coalesced findMany call should only include records which aren't loaded in
   };
 
   var record = Model.create({ id: 1 });
-  Ember.run(record, record.didCreateRecord);
-  Ember.run(record, record.load, 1);
+  run(record, record.didCreateRecord);
+  run(record, record.load, 1);
 
-  Ember.run(function() {
+  run(function() {
     Model.find([1, 2, 3]);
   });
 });
@@ -61,16 +62,16 @@ test("coalesced findMany returns a resolved promise even if all records are load
   };
 
   var record = Model.create({ id: 1 });
-  Ember.run(record, record.didCreateRecord);
-  Ember.run(record, record.load, 1);
+  run(record, record.didCreateRecord);
+  run(record, record.load, 1);
 
   var record2 = Model.create({ id: 2 });
-  Ember.run(record2, record.didCreateRecord);
-  Ember.run(record2, record.load, 2);
+  run(record2, record.didCreateRecord);
+  run(record2, record.load, 2);
 
-  var promise = Ember.run(Model, Model.fetch, [1, 2]);
+  var promise = run(Model, Model.fetch, [1, 2]);
 
-  Ember.run(function() {
+  run(function() {
     promise.then(function(records) {
       assert.equal(records.get("length"), 2);
     });
@@ -94,7 +95,7 @@ test("calls to Model#find and Model#findMany within the same run loop coalesce i
     }
   };
 
-  Ember.run(function() {
+  run(function() {
     Model.find(1);
     Model.find([2, 3]);
   });
@@ -117,7 +118,7 @@ test("should unique IDs", function(assert) {
     }
   };
 
-  Ember.run(function() {
+  run(function() {
     Model.find(1);
     Model.find(1);
     Model.find([2, 3]);
@@ -138,7 +139,7 @@ test("should resolve all RecordArrays", function(assert) {
 
   var promise1, promise2;
 
-  Ember.run(function() {
+  run(function() {
     Model.find(1);
     Model.find(1);
     promise1 = Model.fetch([2, 3]);

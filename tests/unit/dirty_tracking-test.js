@@ -1,4 +1,7 @@
-import {module, test} from 'qunit';
+import { addObserver } from '@ember/object/observers';
+import { defer, Promise as EmberPromise } from 'rsvp';
+import { run, later } from '@ember/runloop';
+import { module, test } from 'qunit';
 var attr = Ember.attr;
 
 module("Dirty tracking");
@@ -14,10 +17,10 @@ test("when no properties have changed on a model, save should noop", function(as
     }
   };
 
-  var obj = Ember.run(Model, Model.create, {isNew: false});
+  var obj = run(Model, Model.create, {isNew: false});
   assert.ok(!obj.get('isDirty'));
 
-  Ember.run(obj, obj.save);
+  run(obj, obj.save);
 
   assert.ok(!obj.get('isSaving'));
 });
@@ -35,13 +38,13 @@ test("when properties have changed on a model, isDirty should be set", function(
     }
   };
 
-  var obj = Ember.run(Model, Model.create, {isNew: false});
+  var obj = run(Model, Model.create, {isNew: false});
   assert.ok(!obj.get('isDirty'));
 
   obj.set('name', 'Jeffrey');
   assert.ok(obj.get('isDirty'));
 
-  Ember.run(obj, obj.save);
+  run(obj, obj.save);
 });
 
 /* TODO
@@ -78,7 +81,7 @@ test("when properties are changed back to the loaded value, isDirty should be fa
     }
   };
 
-  var obj = Ember.run(Model, Model.create, {isNew: false, name: 'Erik'});
+  var obj = run(Model, Model.create, {isNew: false, name: 'Erik'});
   assert.ok(!obj.get('isDirty'));
   assert.deepEqual(obj._dirtyAttributes, [], "There shouldn't be any dirty attributes");
 
@@ -101,7 +104,7 @@ test("after saving, the model shouldn't be dirty", function(assert) {
   Model.adapter = {
     saveRecord: function(record) {
       assert.ok(true, "saveRecord was called");
-      var deferred = Ember.RSVP.defer();
+      var deferred = defer();
       deferred.promise.then(function() {
         record.didSaveRecord();
       });
@@ -110,12 +113,12 @@ test("after saving, the model shouldn't be dirty", function(assert) {
     }
   };
 
-  var obj = Ember.run(Model, Model.create, {isNew: false});
+  var obj = run(Model, Model.create, {isNew: false});
   obj.set('name', 'Erik');
   assert.ok(obj.get('isDirty'));
 
   let done = assert.async();
-  Ember.run(function() {
+  run(function() {
     obj.save().then(function() {
       done();
       assert.ok(!obj.get('isDirty'), "The record is no longer dirty");
@@ -133,12 +136,12 @@ test("after reloading, the model shouldn't be dirty", function(assert) {
   Model.adapter = Ember.FixtureAdapter.create();
 
   Model.load([{ id: '123', name: 'Version 1' }]);
-  var record = Ember.run(Model, Model.find, '123');
+  var record = run(Model, Model.find, '123');
   record.set('name', 'Version 2');
   assert.ok(record.get('isDirty'));
 
   let done = assert.async();
-  Ember.run(function() {
+  run(function() {
     record.reload().then(function() {
       done();
       assert.ok(!record.get('isDirty'), "The record is no longer dirty");
@@ -152,7 +155,7 @@ test("dirty checking works with boolean attributes", function(assert) {
   });
 
   var obj = Model.create();
-  Ember.run(function() {
+  run(function() {
     obj.load(1, {canSwim: true});
   });
 
@@ -167,7 +170,7 @@ test("dirty checking works with date attributes", function(assert) {
   });
   var originalDate = new Date(2013, 0, 0);
   var obj = Model.create();
-  Ember.run(function() {
+  run(function() {
     obj.load(1, {createdAt: originalDate.toISOString()});
   });
 
@@ -201,7 +204,7 @@ test("getting embedded belongsTo attribute after load should not make parent dir
   Post.adapter = Ember.FixtureAdapter.create();
 
   var post = Post.create();
-  Ember.run(post, post.load, json.id, json);
+  run(post, post.load, json.id, json);
   assert.equal(post.get('isDirty'), false, 'loaded record for post is not dirty');
 
   var author = post.get('author');
@@ -222,7 +225,7 @@ test("loading record with embedded hasMany attribute should not make it dirty", 
 
   assert.ok(!post.get('comments.isDirty'), "Post comments should be clean initially");
 
-  Ember.run(function() {
+  run(function() {
     post.load(1, {comments: [Comment.create()]});
   });
 
@@ -238,14 +241,14 @@ test("isDirty is observable", function(assert) {
   });
 
   var obj = Model.create();
-  Ember.run(function() {
+  run(function() {
     obj.load(1, {name: 'Erik'});
   });
 
   obj.get('isDirty'); // give isDirty a kick. it's not observable until it's been computed.
 
   var expectDirty;
-  Ember.addObserver(obj, 'isDirty', function() {
+  addObserver(obj, 'isDirty', function() {
     assert.equal(obj.get('isDirty'), expectDirty, 'isDirty is as expected');
   });
 
@@ -282,7 +285,7 @@ test("manipulating object presence in a hasMany should dirty the parent", functi
 
   comments.pushObject(newComment);
   let done = assert.async();
-  Ember.run(function() {
+  run(function() {
     post.save().then(function() {
       done();
       assert.ok(!post.get('isDirty'), "The post is clean after being saved");
@@ -344,7 +347,7 @@ test("modifying hasMany record should make parent dirty", function(assert) {
   var author = Author.create();
   var post = Post.create();
 
-  Ember.run(function() {
+  run(function() {
     post.load(1, {id: 1, author_ids: [100]});
     author.load(100, {id: 100, name: 'bob'});
   });
@@ -371,7 +374,7 @@ test("changing back record in hasMany array should make parent clean again", fun
   var author = Author.create();
   var post = Post.create();
 
-  Ember.run(function() {
+  run(function() {
     post.load(1, {id: 1, author_ids: [100]});
     author.load(100, {id: 100, name: 'bob'});
   });
@@ -448,8 +451,8 @@ test("isDirty on embedded hasMany records should be false after parent is saved"
   });
   Post.adapter = {
     saveRecord: function(record) {
-      return new Ember.RSVP.Promise(function(resolve, reject) {
-        Ember.run.later(function() {
+      return new EmberPromise(function(resolve, reject) {
+        later(function() {
           record.didSaveRecord();
           resolve(record);
         }, 1);
@@ -499,7 +502,7 @@ test("modifying embedded belongsTo should make parent dirty", function(assert) {
   Post.adapter = Ember.FixtureAdapter.create();
 
   var post = Post.create();
-  Ember.run(post, post.load, json.id, json);
+  run(post, post.load, json.id, json);
   assert.equal(post.get('isDirty'), false, 'post should be clean initially');
 
   post.set('author.name', 'Billy Bob');
@@ -527,7 +530,7 @@ test("changing back embedded belongsTo should make parent clean again", function
   Post.adapter = Ember.FixtureAdapter.create();
 
   var post = Post.create();
-  Ember.run(post, post.load, json.id, json);
+  run(post, post.load, json.id, json);
 
   var author = post.get('author');
   assert.ok(!post.get('isDirty'), "Post should be clean initially");
@@ -557,7 +560,7 @@ test("save parent of embedded belongsTo", function(assert) {
   Post.adapter = Ember.FixtureAdapter.create();
 
   var post = Post.create();
-  Ember.run(post, post.load, json.id, json);
+  run(post, post.load, json.id, json);
   assert.equal(post.get('isDirty'), false, 'post should be clean initially');
 
   post.set('author.name', 'Billy Bob');
@@ -565,7 +568,7 @@ test("save parent of embedded belongsTo", function(assert) {
   assert.equal(post.get('isDirty'), true, 'changes to embedded belongsTo should dirty the parent');
 
   let done = assert.async();
-  Ember.run(function() {
+  run(function() {
     post.save().then(function() {
       done();
       assert.equal(post.get('author.isDirty'), false, 'the author should be clean after being saved');
@@ -602,7 +605,7 @@ test("save parent of embedded belongsTo with different named key", function(asse
   Post.adapter = Ember.FixtureAdapter.create();
 
   var post = Post.create();
-  Ember.run(post, post.load, json.id, json);
+  run(post, post.load, json.id, json);
   assert.equal(post.get('isDirty'), false, 'post should be clean initially');
 
   post.set('author.name', 'Billy Bob');
@@ -610,7 +613,7 @@ test("save parent of embedded belongsTo with different named key", function(asse
   assert.equal(post.get('isDirty'), true, 'changes to embedded belongsTo should dirty the parent');
 
   let done = assert.async();
-  Ember.run(function() {
+  run(function() {
     post.save().then(function() {
       done();
       assert.equal(post.get('author.isDirty'), false, 'the author should be clean after being saved');
@@ -647,7 +650,7 @@ test("set embedded belongsTo", function(assert) {
   Post.adapter = Ember.FixtureAdapter.create();
 
   var post = Post.create();
-  Ember.run(post, post.load, json.id, json);
+  run(post, post.load, json.id, json);
   assert.equal(post.get('isDirty'), false, 'post should be clean initially');
 
   var firstAuthor = post.get('author');
@@ -657,7 +660,7 @@ test("set embedded belongsTo", function(assert) {
   assert.equal(post.get('isDirty'), true, 'post should be dirty because its author was changed');
 
   let done = assert.async();
-  Ember.run(function() {
+  run(function() {
     post.save().then(function() {
       done();
       assert.equal(post.get('author.isDirty'), false, 'author should be clean after being saved');
@@ -699,7 +702,7 @@ test("set embedded belongsTo cleans up observers", function(assert) {
   }
 
   var post = Post.create();
-  Ember.run(post, post.load, json.id, json);
+  run(post, post.load, json.id, json);
 
   var author = post.get('author');
   assert.equal(observers(author), 1, 'there should be one observer on the initial author');

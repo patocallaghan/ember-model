@@ -1,4 +1,5 @@
-import {module, test} from 'qunit';
+import { run } from '@ember/runloop';
+import { module, test } from 'qunit';
 var attr = Ember.attr;
 
 module("Ember.EmbeddedHasManyArray - embedded objects loading");
@@ -26,13 +27,13 @@ test("derp", function(assert) {
   });
 
   var article = Article.create();
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   var comments = article.get('comments');
 
   assert.equal(comments.get('length'), 3);
-  assert.ok(Ember.run(comments, comments.get, 'firstObject') instanceof Comment);
-  assert.deepEqual(Ember.run(comments, comments.mapBy, 'text'), ['uno', 'dos', 'tres']);
+  assert.ok(run(comments, comments.get, 'firstObject') instanceof Comment);
+  assert.deepEqual(run(comments, comments.mapBy, 'text'), ['uno', 'dos', 'tres']);
   assert.ok(!comments.isEvery('isNew'), "Records should not be new");
 });
 

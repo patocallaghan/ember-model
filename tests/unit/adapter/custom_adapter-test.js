@@ -1,4 +1,5 @@
-import {module, test} from 'qunit';
+import { run } from '@ember/runloop';
+import { module, test } from 'qunit';
 var CustomModel;
 
 module("Ember.CustomAdapter", {
@@ -15,6 +16,6 @@ test("throws an error message with class name", function(assert) {
   assert.expect(1);
 
   assert.throws(function() {
-    Ember.run(CustomModel, CustomModel.find(1));
+    run(CustomModel, CustomModel.find(1));
   }, /Ember.CustomAdapter must implement find/);
 });

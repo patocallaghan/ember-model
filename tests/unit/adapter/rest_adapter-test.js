@@ -1,8 +1,12 @@
-import {module, test} from 'qunit';
+import $ from 'jquery';
+import { computed } from '@ember/object';
+import { run } from '@ember/runloop';
+import RSVP, { Promise as EmberPromise, all } from 'rsvp';
+import { module, test } from 'qunit';
 var RESTModel, adapter, _ajax;
 
 function ajaxSuccess(data) {
-  return new Ember.RSVP.Promise(function(resolve, reject) {
+  return new EmberPromise(function(resolve, reject) {
     resolve(data);
   });
 }
@@ -20,15 +24,15 @@ test("throws an error if a url isn't provided", function(assert) {
   assert.expect(3);
 
   assert.throws(function() {
-    Ember.run(RESTModel, RESTModel.find);
+    run(RESTModel, RESTModel.find);
   }, /requires a `url` property to be specified/);
 
   assert.throws(function() {
-    Ember.run(RESTModel, RESTModel.find, 1);
+    run(RESTModel, RESTModel.find, 1);
   }, /requires a `url` property to be specified/);
 
   assert.throws(function() {
-    Ember.run(RESTModel, RESTModel.find, {});
+    run(RESTModel, RESTModel.find, {});
   }, /requires a `url` property to be specified/);
 });
 
@@ -55,7 +59,7 @@ test("findAll", function(assert) {
     assert.equal(method, "GET");
     return ajaxSuccess({posts: []});
   };
-  Ember.run(RESTModel, RESTModel.find);
+  run(RESTModel, RESTModel.find);
 });
 
 test("findAll loads the full JSON payload when collectionKey isn't specified", function(assert) {
@@ -72,7 +76,7 @@ test("findAll loads the full JSON payload when collectionKey isn't specified", f
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findAll();
   });
 
@@ -95,7 +99,7 @@ test("findAll loads the proper JSON payload subset when collectionKey is specifi
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findAll();
   });
 
@@ -106,7 +110,7 @@ test("findAll uses Ember.get for a collectionKey", function(assert) {
   assert.expect(1);
 
   RESTModel.reopenClass({
-    collectionKey: Ember.computed(function() {
+    collectionKey: computed(function() {
       return 'posts';
     })
   });
@@ -123,7 +127,7 @@ test("findAll uses Ember.get for a collectionKey", function(assert) {
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findAll();
   });
 
@@ -153,7 +157,7 @@ test("findAll calls didFindAll callback after finishing", function(assert) {
     didFindAll.apply(adapter, arguments);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findAll();
   });
 
@@ -181,7 +185,7 @@ test("findById", function(assert) {
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     record = RESTModel.find(1);
   });
 
@@ -199,7 +203,7 @@ test("findById loads the full JSON payload when rootKey isn't specified", functi
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     record = RESTModel.find(1);
   });
 
@@ -222,7 +226,7 @@ test("findById loads the proper JSON payload subset when rootKey is specified", 
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     record = RESTModel.find(1);
   });
 
@@ -233,7 +237,7 @@ test("findById uses Ember.get to fetch rootKey", function(assert) {
   assert.expect(1);
 
   RESTModel.reopenClass({
-    rootKey: Ember.computed(function() {
+    rootKey: computed(function() {
       return 'post';
     })
   });
@@ -250,7 +254,7 @@ test("findById uses Ember.get to fetch rootKey", function(assert) {
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     record = RESTModel.find(1);
   });
 
@@ -282,7 +286,7 @@ test("find calls didFind after finishing", function(assert) {
     didFind.apply(adapter, arguments);
   };
 
-  Ember.run(function() {
+  run(function() {
     record = RESTModel.find(1);
   });
 
@@ -301,7 +305,7 @@ test("findQuery", function(assert) {
     assert.equal(method, "GET");
     return ajaxSuccess({posts: []});
   };
-  Ember.run(RESTModel, RESTModel.find, {foo: 'bar'});
+  run(RESTModel, RESTModel.find, {foo: 'bar'});
 });
 
 test("findQuery loads the full JSON payload when collectionKey isn't specified", function(assert) {
@@ -318,7 +322,7 @@ test("findQuery loads the full JSON payload when collectionKey isn't specified",
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findQuery();
   });
 
@@ -341,7 +345,7 @@ test("findQuery loads the data from a specified collectionKey", function(assert)
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findQuery();
   });
 
@@ -352,7 +356,7 @@ test("findQuery uses Ember.get for a collectionKey", function(assert) {
   assert.expect(1);
 
   RESTModel.reopenClass({
-    collectionKey: Ember.computed(function() {
+    collectionKey: computed(function() {
       return 'posts';
     })
   });
@@ -369,7 +373,7 @@ test("findQuery uses Ember.get for a collectionKey", function(assert) {
     return ajaxSuccess(data);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findQuery();
   });
 
@@ -400,7 +404,7 @@ test("findQuery calls didFindQuery callback after finishing", function(assert) {
     didFindQuery.apply(adapter, arguments);
   };
 
-  Ember.run(function() {
+  run(function() {
     records = RESTModel.findQuery(params);
   });
 
@@ -418,7 +422,7 @@ test("findQuery with params", function(assert) {
     return ajaxSuccess({posts: []});
   };
 
-  Ember.run(RESTModel, RESTModel.find, {foo: 'bar', num: 42});
+  run(RESTModel, RESTModel.find, {foo: 'bar', num: 42});
 });
 
 test("createRecord", function(assert) {
@@ -435,7 +439,7 @@ test("createRecord", function(assert) {
     return ajaxSuccess({post: {id: 1, name: "Erik"}});
   };
 
-  Ember.run(record, record.save);
+  run(record, record.save);
 
   assert.ok(!record.get('isNew'), "Record should not be new");
 });
@@ -460,7 +464,7 @@ test("createRecord calls didCreateRecord", function(assert) {
     didCreateRecord.apply(adapter, arguments);
   };
 
-  Ember.run(record, record.save);
+  run(record, record.save);
 
   assert.ok(!record.get('isNew'), "Record should not be new");
   assert.ok(args, "didCreateRecord callback should have been called");
@@ -478,7 +482,7 @@ test("createRecord record loads data in response", function(assert) {
     return ajaxSuccess(data);
   };
 
-  Ember.run(record, record.save);
+  run(record, record.save);
 
   assert.equal(record.get('id'), 1, 'resolved record should have id');
   assert.equal(record.get('name'), 'Erik 2', 'resolved record should have loaded data from server');
@@ -487,7 +491,7 @@ test("createRecord record loads data in response", function(assert) {
 test("saveRecord", function(assert) {
   assert.expect(5);
 
-  var record = Ember.run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false});
+  var record = run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false});
 
   record.set('name', "Kris");
   assert.ok(record.get('isDirty'), "Record should be dirty");
@@ -499,7 +503,7 @@ test("saveRecord", function(assert) {
     return ajaxSuccess({id: 1, name: "Erik"});
   };
 
-  Ember.run(record, record.save);
+  run(record, record.save);
 
   assert.ok(!record.get('isDirty'), "Record should not be dirty");
 });
@@ -507,7 +511,7 @@ test("saveRecord", function(assert) {
 test("saveRecord calls didSaveRecord after saving record", function(assert) {
   assert.expect(5);
 
-  var record = Ember.run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
+  var record = run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
       data = {id: 1, name: "Erik"}, args, didSaveRecord = adapter.didSaveRecord, context;
 
   record.set('name', "Kris");
@@ -523,7 +527,7 @@ test("saveRecord calls didSaveRecord after saving record", function(assert) {
     didSaveRecord.apply(adapter, arguments);
   };
 
-  Ember.run(record, record.save);
+  run(record, record.save);
 
   assert.ok(!record.get('isDirty'), "Record should not be dirty");
   assert.ok(args, "didSaveRecord callback should have been called");
@@ -534,7 +538,7 @@ test("saveRecord calls didSaveRecord after saving record", function(assert) {
 test("saveRecord loads response data if it exists", function(assert) {
   assert.expect(4);
 
-  var record = Ember.run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
+  var record = run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
       responseData = {post: {id: 1, name: "Bill"}};
 
   record.set('name', 'John');
@@ -544,7 +548,7 @@ test("saveRecord loads response data if it exists", function(assert) {
     return ajaxSuccess(responseData);
   };
 
-  Ember.run(record, record.save);
+  run(record, record.save);
 
   assert.ok(!record.get('isDirty'), 'Record should not be dirty');
   assert.ok(!record.get('isSaving'), 'Record should not be saving');
@@ -553,7 +557,7 @@ test("saveRecord loads response data if it exists", function(assert) {
 
 test("saveRecord does not load empty response", function(assert) {
   assert.expect(4);
-  var record = Ember.run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
+  var record = run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
       responseData = '';
 
   record.set('name', 'John');
@@ -563,7 +567,7 @@ test("saveRecord does not load empty response", function(assert) {
     return ajaxSuccess(responseData);
   };
 
-  Ember.run(record, record.save);
+  run(record, record.save);
 
   assert.ok(!record.get('isDirty'), 'Record should not be dirty');
   assert.ok(!record.get('isSaving'), 'Record should not be saving');
@@ -572,7 +576,7 @@ test("saveRecord does not load empty response", function(assert) {
 
 test("saveRecord does not load HEAD response (undefined response body)", function(assert) {
   assert.expect(4);
-  var record = Ember.run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
+  var record = run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
       responseData = '';
 
   record.set('name', 'John');
@@ -582,7 +586,7 @@ test("saveRecord does not load HEAD response (undefined response body)", functio
     return ajaxSuccess(undefined);
   };
 
-  Ember.run(record, record.save);
+  run(record, record.save);
 
   assert.ok(!record.get('isDirty'), 'Record should not be dirty');
   assert.ok(!record.get('isSaving'), 'Record should not be saving');
@@ -591,7 +595,7 @@ test("saveRecord does not load HEAD response (undefined response body)", functio
 
 test("saveRecord does not load response if root key is missing", function(assert) {
   assert.expect(4);
-  var record = Ember.run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
+  var record = run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
       responseData = {notRootKey: true};
 
   record.set('name', 'John');
@@ -601,7 +605,7 @@ test("saveRecord does not load response if root key is missing", function(assert
     return ajaxSuccess(responseData);
   };
 
-  Ember.run(record, record.save);
+  run(record, record.save);
 
   assert.ok(!record.get('isDirty'), 'Record should not be dirty');
   assert.ok(!record.get('isSaving'), 'Record should not be saving');
@@ -611,7 +615,7 @@ test("saveRecord does not load response if root key is missing", function(assert
 test("deleteRecord", function(assert) {
   assert.expect(5);
 
-  var record = Ember.run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false});
+  var record = run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false});
   assert.ok(!record.get('isDeleted'), "Record should not be deleted");
 
   adapter._ajax = function(url, params, method) {
@@ -621,7 +625,7 @@ test("deleteRecord", function(assert) {
     return ajaxSuccess();
   };
 
-  Ember.run(record, record.deleteRecord);
+  run(record, record.deleteRecord);
 
   assert.ok(record.get('isDeleted'), "Record should be deleted");
 });
@@ -629,7 +633,7 @@ test("deleteRecord", function(assert) {
 test("deleteRecord calls didDeleteRecord after deleting", function(assert) {
   assert.expect(5);
 
-  var record = Ember.run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
+  var record = run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false}),
       args, didDeleteRecord = adapter.didDeleteRecord, data = { ok: true }, context;
 
   assert.ok(!record.get('isDeleted'), "Record should not be deleted");
@@ -644,7 +648,7 @@ test("deleteRecord calls didDeleteRecord after deleting", function(assert) {
     didDeleteRecord.apply(adapter, arguments);
   };
 
-  Ember.run(record, record.deleteRecord);
+  run(record, record.deleteRecord);
 
   assert.ok(record.get('isDeleted'), "Record should be deleted");
   assert.ok(args, "didDeleteRecord callback should have been called");
@@ -680,12 +684,12 @@ test("Model.find([id]) works as expected", function(assert) {
     return ajaxSuccess(data);
   };
 
-  record = Ember.run(RESTModel, RESTModel.find, 1);
-  records = Ember.run(RESTModel, RESTModel.find, [1]);
+  record = run(RESTModel, RESTModel.find, 1);
+  records = run(RESTModel, RESTModel.find, [1]);
 
-  promise = Ember.run(Ember.RSVP, Ember.RSVP.all, [records, record]);
+  promise = run(RSVP, all, [records, record]);
 
-  Ember.run(promise, promise.then, function() {
+  run(promise, promise.then, function() {
     assert.equal(records.get("firstObject"), record);
   });
 });
@@ -715,7 +719,7 @@ module("Ember.RESTAdapter - with custom ajax settings", {
   }
 });
 test("Expect ajax settings to include a custom header", function(assert) {
-  var settings = Ember.run(RESTModel.adapter, RESTModel.adapter.ajaxSettings, RESTModel.url, "GET");
+  var settings = run(RESTModel.adapter, RESTModel.adapter.ajaxSettings, RESTModel.url, "GET");
   assert.equal(settings.headers.authentication, "xxx-yyy");
   assert.equal(settings.type, "GET");
   assert.equal(settings.url, RESTModel.url);
@@ -747,7 +751,7 @@ module("Ember.RESTAdapter - with custom ajax settings passed from create", {
 });
 
 test("Expect ajax settings to include a custom header", function(assert) {
-  var settings = Ember.run(adapter, adapter.ajaxSettings, RESTModel.url, "GET");
+  var settings = run(adapter, adapter.ajaxSettings, RESTModel.url, "GET");
   assert.equal(settings.headers.authentication, "xxx-yyy");
   assert.equal(settings.type, "GET");
   assert.equal(settings.url, RESTModel.url);
@@ -771,7 +775,7 @@ test("find with 0", function(assert) {
     assert.equal(method, "GET");
     return ajaxSuccess();
   };
-  Ember.run(RESTModel, RESTModel.find, 0);
+  run(RESTModel, RESTModel.find, 0);
 });
 
 test("find() resolves with record", function(assert) {
@@ -888,8 +892,8 @@ test('_handleRejections() will resolve empty successful DELETEs', function(asser
   var resolve = function(data) {
     assert.ok(data === null, "resolved with null");
   };
-  Ember.run(function() {
-    adapter._handleRejections("DELETE", {status: 200}, resolve, Ember.$.noop);
+  run(function() {
+    adapter._handleRejections("DELETE", {status: 200}, resolve, $.noop);
   });
 });
 
@@ -898,8 +902,8 @@ test('_handleRejections() will reject empty responses for other verbs', function
   var reject = function(data) {
     assert.ok(data.status === 200, "rejected with 200 status");
   };
-  Ember.run(function() {
-    adapter._handleRejections("PUT", {status: 200}, Ember.$.noop, reject);
+  run(function() {
+    adapter._handleRejections("PUT", {status: 200}, $.noop, reject);
   });
 });
 
@@ -908,7 +912,7 @@ test('_handleRejections() will reject DELETEs with unsuccessful status codes', f
   var reject = function(data) {
     assert.ok(data.status === 403, "rejected with 403 status");
   };
-  Ember.run(function() {
-    adapter._handleRejections("DELETE", {status: 403}, Ember.$.noop, reject);
+  run(function() {
+    adapter._handleRejections("DELETE", {status: 403}, $.noop, reject);
   });
 });

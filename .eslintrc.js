@@ -14,7 +14,11 @@ module.exports = {
   env: {
     browser: true
   },
+  globals: {
+    Ember: true
+  },
   rules: {
+    'no-unused-vars': 'off'
   },
   overrides: [
     // node files

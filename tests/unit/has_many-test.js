@@ -1,5 +1,10 @@
-import {module, test} from 'qunit';
-var get = Ember.get;
+import Application from '@ember/application';
+import { A } from '@ember/array';
+import { run } from '@ember/runloop';
+import ComputedProperty from '@ember/object/computed';
+import { get } from '@ember/object';
+import { module, test } from 'qunit';
+import expectAssertion from 'ember-model/tests/helpers/expect-assertion';
 
 module("Ember.hasMany");
 
@@ -18,11 +23,11 @@ test("is a CP macro", function(assert) {
 
   Comment.primaryKey = 'token';
 
-  assert.ok(cp instanceof Ember.ComputedProperty);
+  assert.ok(cp instanceof ComputedProperty);
 
   var article = Article.create();
-  Ember.run(article, article.load, 1, {comments: Ember.A([{token: 'a'}, {token: 'b'}])});
-  var comments = Ember.run(article, article.get, 'comments');
+  run(article, article.load, 1, {comments: A([{token: 'a'}, {token: 'b'}])});
+  var comments = run(article, article.get, 'comments');
 
   assert.ok(comments instanceof Ember.EmbeddedHasManyArray);
   assert.equal(comments.get('modelClass'), Comment);
@@ -40,11 +45,11 @@ var Comment = Ember.Model.extend({
 
   Comment.primaryKey = 'token';
 
-  assert.ok(cp instanceof Ember.ComputedProperty);
+  assert.ok(cp instanceof ComputedProperty);
 
   var article = Article.create();
-  Ember.run(article, article.load, 1, {comments: Ember.A([1, 2])});
-  var comments = Ember.run(article, article.get, 'comments');
+  run(article, article.load, 1, {comments: A([1, 2])});
+  var comments = run(article, article.get, 'comments');
 
   assert.ok(comments instanceof Ember.HasManyArray);
   assert.equal(comments.get('modelClass'), Comment);
@@ -62,10 +67,10 @@ test("using it in a model definition", function(assert) {
   Comment.primaryKey = 'token';
 
   var article = Article.create();
-  Ember.run(article, article.load, 1, {comments: Ember.A([{token: 'a'}, {token: 'b'}])});
+  run(article, article.load, 1, {comments: A([{token: 'a'}, {token: 'b'}])});
 
   assert.equal(article.get('comments.length'), 2);
-  assert.equal(Ember.run(article, article.get, 'comments.firstObject.token'), 'a');
+  assert.equal(run(article, article.get, 'comments.firstObject.token'), 'a');
 });
 
 test("model can be specified with a string instead of a class", function(assert) {
@@ -79,16 +84,16 @@ test("model can be specified with a string instead of a class", function(assert)
   Comment.primaryKey = 'token';
 
   var article = Article.create();
-  Ember.run(article, article.load, 1, {comments: Ember.A([{token: 'a'}, {token: 'b'}])});
+  run(article, article.load, 1, {comments: A([{token: 'a'}, {token: 'b'}])});
 
   assert.equal(article.get('comments.length'), 2);
-  assert.equal(Ember.run(article, article.get, 'comments.firstObject.token'), 'a');
+  assert.equal(run(article, article.get, 'comments.firstObject.token'), 'a');
 });
 
 test("model can be specified with a string to a resolved path", function(assert) {
   var App;
-  Ember.run(function() {
-    App = Ember.Application.create({});
+  run(function() {
+    App = Application.create({});
   });
 
   App.Subcomment = Ember.Model.extend({
@@ -104,7 +109,7 @@ test("model can be specified with a string to a resolved path", function(assert)
 
   var article = App.Article.create({container: App.__container__});
   var subcomments = {
-    subcomments: Ember.A([
+    subcomments: A([
       {id: 'c'},
       {id: 'd'}
     ])
@@ -113,12 +118,12 @@ test("model can be specified with a string to a resolved path", function(assert)
   comment1.subcomments = subcomments;
   var comment2 = {id: 'b'};
 
-  Ember.run(article, article.load, 1, {comments: Ember.A([comment1, comment2])});
+  run(article, article.load, 1, {comments: A([comment1, comment2])});
 
   assert.equal(article.get('comments.length'), 2);
-  assert.equal(Ember.run(article, article.get, 'comments.firstObject.id'), 'a');
+  assert.equal(run(article, article.get, 'comments.firstObject.id'), 'a');
 
-  Ember.run(App, 'destroy');
+  run(App, 'destroy');
 });
 
 test("when fetching an association getHasMany is called", function(assert) {
@@ -142,7 +147,7 @@ test("when fetching an association getHasMany is called", function(assert) {
     return 'foobar';
   };
 
-  Ember.run(article, article.load, 1, {comments: Ember.A([{token: 'a'}, {token: 'b'}])});
+  run(article, article.load, 1, {comments: A([{token: 'a'}, {token: 'b'}])});
 
   assert.equal(article.get('comments'), 'foobar', "value returned from getHasMany should be returned as an association");
 });
@@ -165,10 +170,10 @@ test("when setting an association that has been neither loaded or fetched getHas
     assert.equal(type, Comment, "type of the association should be passed to getHasMany");
     assert.equal(meta.kind, 'hasMany', "metadata should be passed to getHasMany");
 
-    return Ember.A();
+    return A();
   };
 
-  article.set('comments', Ember.A([{token: 'a'}, {token: 'b'}]));
+  article.set('comments', A([{token: 'a'}, {token: 'b'}]));
   assert.deepEqual(article.get('comments'), [{token: 'a'}, {token: 'b'}], "setting the relation should have created and filled a hasManyArray");
 });
 
@@ -190,12 +195,12 @@ test("when setting an association that has been loaded but not fetched getHasMan
     assert.equal(type, Comment, "type of the association should be passed to getHasMany");
     assert.equal(meta.kind, 'hasMany', "metadata should be passed to getHasMany");
 
-    return Ember.A();
+    return A();
   };
 
-  Ember.run(article, article.load, 1, {comments: Ember.A([{token: 'a'}, {token: 'b'}])});
+  run(article, article.load, 1, {comments: A([{token: 'a'}, {token: 'b'}])});
 
-  article.set('comments', Ember.A([{token: 'b'}, {token: 'c'}]));
+  article.set('comments', A([{token: 'b'}, {token: 'c'}]));
   assert.deepEqual(article.get('comments'), [{token: 'b'}, {token: 'c'}], "setting the relation should have created and filled a hasManyArray");
 });
 
@@ -213,7 +218,7 @@ test("toJSON uses the given relationship key", function(assert) {
 
   var article = Article.create();
 
-  Ember.run(article, article.load, 1, { comment_ids: Ember.A(['a'] )});
+  run(article, article.load, 1, { comment_ids: A(['a'] )});
 
   assert.deepEqual(article.toJSON(), { comment_ids: ['a'] }, "Relationship ids should be serialized only under the given key");
 });
@@ -232,7 +237,7 @@ test("materializing the relationship should not dirty the record", function(asse
   Post.adapter = Ember.FixtureAdapter.create();
   Author.adapter = Ember.FixtureAdapter.create();
 
-  var post = Ember.run(Post, Post.create);
+  var post = run(Post, Post.create);
   post.get('id');
   assert.ok(!post.get('isDirty'), 'is not dirty before materializing the relationship');
   post.get('authors');
@@ -266,10 +271,10 @@ test("has many records created are available from reference cache", function(ass
     projects:[{
           id: 1,
           title: 'project one title',
-          company: 1, 
-          posts: [{id: 1, title: 'title', body: 'body', project:1 }, 
+          company: 1,
+          posts: [{id: 1, title: 'title', body: 'body', project:1 },
                   {id: 2, title: 'title two', body: 'body two', project:1 }]
-      }] 
+      }]
     };
 
   Company.load([compJson]);
@@ -304,9 +309,9 @@ test("relationship type cannot be empty", function(assert) {
      comment = Comment.create();
 
   var comments = [comment];
-  Ember.run(article, article.load, 1, {comments: Ember.A([{token: 'a'}, {token: 'b'}])});
+  run(article, article.load, 1, {comments: A([{token: 'a'}, {token: 'b'}])});
 
-  expectAssertion(function() {
+  expectAssertion(assert, function() {
       article.get('comments');
   },
   /Type cannot be empty/);
@@ -325,7 +330,7 @@ test("key defaults to model's property key", function(assert) {
 
   var article = Article.create();
 
-  Ember.run(article, article.load, 1, { comments: Ember.A(['a'] )});
+  run(article, article.load, 1, { comments: A(['a'] )});
 
   assert.deepEqual(article.toJSON(), { comments: ['a'] });
 });

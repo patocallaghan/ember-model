@@ -1,4 +1,5 @@
-import {module, test} from 'qunit';
+import { run } from '@ember/runloop';
+import { module, test } from 'qunit';
 var attr = Ember.attr;
 
 module("Ember.EmbeddedHasManyArray - manipulation");
@@ -25,20 +26,20 @@ test("pushing record adds a record to many array", function(assert) {
   });
 
   var article = Article.create();
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   var comments = article.get('comments');
 
   var comment = Comment.create({ text: 'quatro' });
 
-  Ember.run(comments, comments.pushObject, comment);
+  run(comments, comments.pushObject, comment);
 
   assert.equal(comments.get('length'), 4);
   assert.equal(comments.get('lastObject.text'), 'quatro', 'added element should be available in the array');
 
   comment = Comment.create({ id: 5, text: 'cinco' });
 
-  Ember.run(comments, comments.pushObject, comment);
+  run(comments, comments.pushObject, comment);
 
   assert.equal(comments.get('length'), 5);
   assert.equal(comments.get('lastObject.text'), 'cinco', 'added element should be available in the array');
@@ -66,7 +67,7 @@ test("removing a record from the many array", function(assert) {
   });
 
   var article = Article.create();
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   var comments = article.get('comments'),
       dos = comments.objectAt(1);

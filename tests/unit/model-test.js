@@ -1,4 +1,12 @@
-import {module, test} from 'qunit';
+import {
+  Promise as EmberPromise,
+  defer,
+  all
+} from 'rsvp';
+import Application from '@ember/application';
+import { run } from '@ember/runloop';
+import { observer, computed } from '@ember/object';
+import { module, test } from 'qunit';
 var Model, ModelWithoutID;
 
 module("Ember.Model", {
@@ -67,7 +75,7 @@ test("isLoaded observers have all the updated properties", function(assert) {
   });
 
   var Foo = Model.extend({
-    isLoadedDidChange: Ember.observer('isLoaded', function() {
+    isLoadedDidChange: observer('isLoaded', function() {
       assert.ok(this.get('isLoaded'));
       assert.ok(!this.get('isNew'), "loaded model should not be new");
     })
@@ -112,7 +120,7 @@ test("can handle models with ID of zero", function(assert) {
     { id: 0, name: 'Erik' }
   ];
 
-  var record = Ember.run(ModelWithZeroID, ModelWithZeroID.find, 0);
+  var record = run(ModelWithZeroID, ModelWithZeroID.find, 0);
 
   record.on('didLoad', function() {
     done();
@@ -128,7 +136,7 @@ test("can handle models with ID of zero", function(assert) {
 test(".find(id) delegates to the adapter's find method", function(assert) {
   assert.expect(6);
 
-  var record = Ember.run(Model, Model.find, 'a');
+  var record = run(Model, Model.find, 'a');
   assert.ok(record, "Record was returned by find");
   assert.ok(!record.get('isLoaded'));
   assert.ok(record.get('isLoading'));
@@ -153,8 +161,8 @@ test(".find([]) called with a single record returns cache before delgating to ad
     }
   }).create();
 
-  var record = Ember.run(Model, Model.find, ['a']);
-  Ember.run(Model, Model.find, 'a');
+  var record = run(Model, Model.find, ['a']);
+  run(Model, Model.find, 'a');
   assert.ok(record, "Record was returned by find");
 });
 
@@ -170,8 +178,8 @@ test(".find([]) called when Model.transient true always delegates to adapter's f
     }
   }).create();
 
-  var record = Ember.run(Model, Model.find, ['a']);
-  Ember.run(Model, Model.find, 'a');
+  var record = run(Model, Model.find, ['a']);
+  run(Model, Model.find, 'a');
   assert.ok(record, "Record was returned by find");
 });
 
@@ -179,7 +187,7 @@ test(".reload() loads the record via the adapter after it was loaded", function(
   assert.expect(1);
 
   Model.load([{ token: 'a', name: 'Yehuda' }]);
-  var record = Ember.run(Model, Model.find, 'a');
+  var record = run(Model, Model.find, 'a');
 
   Model.adapter = Ember.FixtureAdapter.extend({
     find: function() {
@@ -188,16 +196,16 @@ test(".reload() loads the record via the adapter after it was loaded", function(
     }
   }).create();
 
-  Ember.run(record, record.reload);
+  run(record, record.reload);
 });
 
 test(".reload() returns a promise", function(assert) {
   assert.expect(2);
 
   Model.load([{ token: 'a', name: 'Yehuda' }]);
-  var record = Ember.run(Model, Model.find, 'a');
+  var record = run(Model, Model.find, 'a');
 
-  var promise = Ember.run(record, record.reload);
+  var promise = run(record, record.reload);
   promise.then(function(resolvedRecord) {
     done();
     assert.ok(resolvedRecord === record, ".reload() resolved with same record");
@@ -209,7 +217,7 @@ test(".reload() returns a promise", function(assert) {
 test(".revert() sets the data back to its saved state", function(assert) {
   assert.expect(3);
 
-  var record = Ember.run(Model, Model.find, 'a');
+  var record = run(Model, Model.find, 'a');
 
   record.on('didLoad', function() {
     done();
@@ -240,8 +248,8 @@ test(".revert() works on new records with no attributes", function(assert) {
 test(".find(id) called multiple times returns the same object (identity map)", function(assert) {
   assert.expect(1);
 
-  var first = Ember.run(Model, Model.find, 'a'),
-      second = Ember.run(Model, Model.find, 'a');
+  var first = run(Model, Model.find, 'a'),
+      second = run(Model, Model.find, 'a');
 
   assert.equal(first, second);
 });
@@ -249,15 +257,15 @@ test(".find(id) called multiple times returns the same object (identity map)", f
 test(".unload(model) removes models from caches and subsequent find(id) return new objects", function(assert) {
   assert.expect(4);
 
-  var first = Ember.run(Model, Model.find, 'a'),
-      second = Ember.run(Model, Model.find, 'a');
+  var first = run(Model, Model.find, 'a'),
+      second = run(Model, Model.find, 'a');
 
   Model.unload(first);
 
   first.set('token', 'b');
   assert.ok(first.get('token') === second.get('token'), "record models are the same object");
 
-  second = Ember.run(Model, Model.find, 'a');
+  second = run(Model, Model.find, 'a');
   assert.ok(first.get('token') !== second.get('token'), "records ids are different");
 
   second.set('token', 'b');
@@ -270,8 +278,8 @@ test(".unload(model) removes models from caches and subsequent find(id) return n
 test(".clearCache destroys sideloadedData and record references", function(assert) {
   assert.expect(4);
 
-  var first = Ember.run(Model, Model.find, 'a'),
-      second = Ember.run(Model, Model.find, 'a');
+  var first = run(Model, Model.find, 'a'),
+      second = run(Model, Model.find, 'a');
 
   Model.load([{token: 2, name: 'Yehuda'}]);
 
@@ -356,7 +364,7 @@ test("record isNew & isSaving flags", function(assert) {
 test("record.toJSON() is generated from Ember.attr definitions", function(assert) {
   assert.expect(1);
 
-  var record = Ember.run(Model, Model.find, 'a');
+  var record = run(Model, Model.find, 'a');
   record.on('didLoad', function() {
     done();
     assert.deepEqual(record.toJSON(), {token: 'a', name: 'Erik'});
@@ -369,7 +377,7 @@ test("record.toJSON() uses rootKey if it is defined", function(assert) {
 
   Model.rootKey = 'model';
 
-  var record = Ember.run(Model, Model.find, 'a');
+  var record = run(Model, Model.find, 'a');
   record.on('didLoad', function() {
     done();
     assert.deepEqual(record.toJSON(), { model: { token: 'a', name: 'Erik' } });
@@ -382,7 +390,7 @@ test("record.toJSON() can use computed property as rootKey", function(assert) {
 
   var CPRoot = Model.extend();
   CPRoot.reopenClass({
-    rootKey: Ember.computed(function() {
+    rootKey: computed(function() {
       return 'computed';
     })
   });
@@ -397,7 +405,7 @@ test("record.toJSON() can use computed property as rootKey", function(assert) {
 test("Model.fetch() returns a promise", function(assert) {
   assert.expect(1);
 
-  var promise = Ember.run(Model, Model.fetch);
+  var promise = run(Model, Model.fetch);
   promise.then(function(record) {
     done();
     assert.ok(record.get('isLoaded'));
@@ -408,7 +416,7 @@ test("Model.fetch() returns a promise", function(assert) {
 test("Model.fetch(id) returns a promise", function(assert) {
   assert.expect(1);
 
-  var promise = Ember.run(Model, Model.fetch, 'a');
+  var promise = run(Model, Model.fetch, 'a');
   promise.then(function(record) {
     done();
     assert.ok(record.get('isLoaded'));
@@ -419,7 +427,7 @@ test("Model.fetch(id) returns a promise", function(assert) {
 test("Model#save() returns a promise", function(assert) {
   assert.expect(2);
 
-  var promise = Ember.run(Model, Model.fetch, 'a');
+  var promise = run(Model, Model.fetch, 'a');
   promise.then(function(record) {
     done();
     record.set('name', 'Stefan');
@@ -436,7 +444,7 @@ test("Model#save() returns a promise", function(assert) {
 test("Model#deleteRecord() returns a promise", function(assert) {
   assert.expect(2);
 
-  var promise = Ember.run(Model, Model.fetch, 'a');
+  var promise = run(Model, Model.fetch, 'a');
   promise.then(function(record) {
     done();
     record.deleteRecord().then(function(record2) {
@@ -452,8 +460,8 @@ test("Model#deleteRecord() returns a promise", function(assert) {
 test("Model#save() works as expected", function(assert) {
   assert.expect(2);
 
-  var recordsPromise = Ember.run(Model, Model.fetch);
-  var record = Ember.run(Model, Model.find, 'a');
+  var recordsPromise = run(Model, Model.fetch);
+  var record = run(Model, Model.find, 'a');
 
   recordsPromise.then(function(records) {
     done();
@@ -575,9 +583,9 @@ test("toJSON includes embedded relationships", function(assert) {
   };
 
   var article = Article.create();
-  Ember.run(article, article.load, articleData.id, articleData);
+  run(article, article.load, articleData.id, articleData);
 
-  var json = Ember.run(article, article.toJSON);
+  var json = run(article, article.toJSON);
 
   assert.deepEqual(json.comments.map(function(c) { return c.text; }), ['uno', 'dos', 'tres'], "JSON should contain serialized records from hasMany relationship");
   assert.equal(json.author.name, 'drogus', "JSON should contain serialized record from belongsTo relationship");
@@ -618,9 +626,9 @@ test("toJSON includes non-embedded relationships", function(assert) {
 
 
   var article = Article.create();
-  Ember.run(article, article.load, articleData.id, articleData);
+  run(article, article.load, articleData.id, articleData);
 
-  var json = Ember.run(article, article.toJSON);
+  var json = run(article, article.toJSON);
 
   assert.deepEqual(json.comments, [1, 2, 3], "JSON should contain ids of hasMany relationship");
   assert.equal(json.author, 1, "JSON should contain id of belongsTo relationship");
@@ -628,8 +636,8 @@ test("toJSON includes non-embedded relationships", function(assert) {
 
 test("toJSON works with string names", function(assert) {
   var App;
-  Ember.run(function() {
-    App = Ember.Application.create({});
+  run(function() {
+    App = Application.create({});
   });
 
   var Comment = Ember.Model.extend({
@@ -673,13 +681,13 @@ test("toJSON works with string names", function(assert) {
 
 
   var article = Article.create();
-  Ember.run(article, article.load, articleData.id, articleData);
+  run(article, article.load, articleData.id, articleData);
 
-  var json = Ember.run(article, article.toJSON);
+  var json = run(article, article.toJSON);
 
   assert.deepEqual(json.comments, [1, 2, 3], "JSON should contain ids of hasMany relationship");
   assert.equal(json.author, 1, "JSON should contain id of belongsTo relationship");
-  Ember.run(function() {
+  run(function() {
     App.destroy();
   });
 });
@@ -742,7 +750,7 @@ test("fetchQuery returns a promise", function(assert) {
   var FixtureFindQueryAdapter = Ember.FixtureAdapter.extend({
     findQuery: function(klass, records, params) {
       records.set('isLoaded', true);
-      return new Ember.RSVP.Promise(function(resolve, reject) {
+      return new EmberPromise(function(resolve, reject) {
         resolve(records);
       });
     }
@@ -750,7 +758,7 @@ test("fetchQuery returns a promise", function(assert) {
 
   Model.adapter = FixtureFindQueryAdapter.create();
 
-  var promise = Ember.run(Model, Model.fetchQuery, {name: 'a'});
+  var promise = run(Model, Model.fetchQuery, {name: 'a'});
   promise.then(function(records) {
     done();
     assert.ok(records.get('isLoaded'));
@@ -761,11 +769,11 @@ test("fetchQuery returns a promise", function(assert) {
 test("second promise returned by fetchAll when loading, resolves on load", function(assert) {
   assert.expect(1);
 
-  var deferred = Ember.RSVP.defer();
+  var deferred = defer();
 
   var DeferredResolvingAdapter = Ember.FixtureAdapter.extend({
     findAll: function(klass, records, params) {
-      return new Ember.RSVP.Promise(function(resolve, reject) {
+      return new EmberPromise(function(resolve, reject) {
         deferred.promise.then(function() {
           records.set('isLoaded', true);
           resolve(records);
@@ -775,8 +783,8 @@ test("second promise returned by fetchAll when loading, resolves on load", funct
   });
   Model.adapter = DeferredResolvingAdapter.create();
 
-  var firstPromise = Ember.run(Model, Model.fetchAll);
-  var secondPromise = Ember.run(Model, Model.fetchAll);
+  var firstPromise = run(Model, Model.fetchAll);
+  var secondPromise = run(Model, Model.fetchAll);
 
   secondPromise.then(function(records) {
     done();
@@ -789,7 +797,7 @@ test("second promise returned by fetchAll when loading, resolves on load", funct
 });
 
 test("fetchAll returns a promise", function(assert) {
-    var promise = Ember.run(Model, Model.fetchAll);
+    var promise = run(Model, Model.fetchAll);
     promise.then(function(records) {
       done();
       assert.ok(records.get('isLoaded'));
@@ -800,10 +808,10 @@ test("fetchAll returns a promise", function(assert) {
 
 test("fetchAll returns promise if findAll RecordArray already exists", function(assert) {
   assert.expect(1);
-  var promise = Ember.run(Model, Model.fetch);
+  var promise = run(Model, Model.fetch);
   promise.then(function(records) {
     done();
-    var secondPromise = Ember.run(Model, Model.fetch);
+    var secondPromise = run(Model, Model.fetch);
     secondPromise.then(function() {
       done();
       assert.ok(true, "Second fetch returned a promise");
@@ -815,9 +823,9 @@ test("fetchAll returns promise if findAll RecordArray already exists", function(
 
 test("fetchAll resolves to same RecordArray when called multiple times", function(assert) {
   assert.expect(1);
-  var promiseOne = Ember.run(Model, Model.fetch);
-  var promiseTwo = Ember.run(Model, Model.fetch);
-  Ember.RSVP.all([promiseOne, promiseTwo]).then(function(records) {
+  var promiseOne = run(Model, Model.fetch);
+  var promiseTwo = run(Model, Model.fetch);
+  all([promiseOne, promiseTwo]).then(function(records) {
     done();
     assert.ok(records[0] === records[1], "Both promises resolve with same RecordArray");
   });
@@ -828,7 +836,7 @@ test("fetchMany returns a promise", function(assert) {
   var FixtureFindQueryAdapter = Ember.FixtureAdapter.extend({
     findMany: function(klass, records, params) {
       records.set('isLoaded', true);
-      return new Ember.RSVP.Promise(function(resolve, reject) {
+      return new EmberPromise(function(resolve, reject) {
         resolve(records);
       });
     }
@@ -836,7 +844,7 @@ test("fetchMany returns a promise", function(assert) {
 
   Model.adapter = FixtureFindQueryAdapter.create();
 
-  var promise = Ember.run(Model, Model.fetchMany, ['a', 'b']);
+  var promise = run(Model, Model.fetchMany, ['a', 'b']);
   promise.then(function(records) {
     done();
     assert.ok(records.get('isLoaded'));
@@ -847,7 +855,7 @@ test("fetchMany returns a promise", function(assert) {
 test("fetchById returns a promise", function(assert) {
   assert.expect(1);
 
-  var promise = Ember.run(Model, Model.fetchById, 'a');
+  var promise = run(Model, Model.fetchById, 'a');
   promise.then(function(record) {
     done();
     assert.ok(record.get('isLoaded'));
@@ -860,7 +868,7 @@ test("fetchQuery resolves with error object", function(assert) {
 
   var FixtureFindQueryAdapter = Ember.FixtureAdapter.extend({
     findQuery: function(klass, records, params) {
-      return new Ember.RSVP.Promise(function(resolve, reject) {
+      return new EmberPromise(function(resolve, reject) {
         reject({error: true});
       });
     }
@@ -868,7 +876,7 @@ test("fetchQuery resolves with error object", function(assert) {
 
   Model.adapter = FixtureFindQueryAdapter.create();
 
-  var promise = Ember.run(Model, Model.fetchQuery, {name: 'a'});
+  var promise = run(Model, Model.fetchQuery, {name: 'a'});
   promise.then(null, function(error) {
     done();
     assert.deepEqual(error, {error: true});
@@ -881,7 +889,7 @@ test("fetchAll resolves with error object", function(assert) {
 
   var FixtureFindQueryAdapter = Ember.FixtureAdapter.extend({
     findAll: function(klass, records, params) {
-      return new Ember.RSVP.Promise(function(resolve, reject) {
+      return new EmberPromise(function(resolve, reject) {
         reject({error: true});
       });
     }
@@ -889,7 +897,7 @@ test("fetchAll resolves with error object", function(assert) {
 
   Model.adapter = FixtureFindQueryAdapter.create();
 
-  var promise = Ember.run(Model, Model.fetchAll);
+  var promise = run(Model, Model.fetchAll);
   promise.then(null, function(error) {
     done();
     assert.equal(error.error, true);
@@ -902,7 +910,7 @@ test("fetchById resolves with error object", function(assert) {
 
   var FixtureFindQueryAdapter = Ember.FixtureAdapter.extend({
     find: function(record, id) {
-      return new Ember.RSVP.Promise(function(resolve, reject) {
+      return new EmberPromise(function(resolve, reject) {
         reject({error: true});
       });
     }
@@ -910,7 +918,7 @@ test("fetchById resolves with error object", function(assert) {
 
   Model.adapter = FixtureFindQueryAdapter.create();
 
-  var promise = Ember.run(Model, Model.fetchById, 'a');
+  var promise = run(Model, Model.fetchById, 'a');
   promise.then(null, function(error) {
     done();
     assert.deepEqual(error, {error: true});
@@ -921,7 +929,7 @@ test("fetchById resolves with error object", function(assert) {
 test("fetchMany resolves with error object", function(assert) {
   var FixtureFindQueryAdapter = Ember.FixtureAdapter.extend({
     findMany: function(klass, records, params) {
-      return new Ember.RSVP.Promise(function(resolve, reject) {
+      return new EmberPromise(function(resolve, reject) {
         reject({error: true});
       });
     }
@@ -929,7 +937,7 @@ test("fetchMany resolves with error object", function(assert) {
 
   Model.adapter = FixtureFindQueryAdapter.create();
 
-  var promise = Ember.run(Model, Model.fetchMany, ['a', 'b']);
+  var promise = run(Model, Model.fetchMany, ['a', 'b']);
   promise.then(null, function(error) {
     done();
     assert.deepEqual(error, {error: true});

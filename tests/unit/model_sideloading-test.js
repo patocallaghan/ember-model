@@ -1,4 +1,5 @@
-import {module, test} from 'qunit';
+import { run } from '@ember/runloop';
+import { module, test } from 'qunit';
 var attr = Ember.attr;
 
 module("Ember.Model sideloading");
@@ -21,7 +22,7 @@ test("data can be sideloaded without materializing records", function(assert) {
   Model.load([{id: 1, name: "Erik", camel_case: "Dromedary"}]);
 
   var record;
-  Ember.run(function() {
+  run(function() {
     record = Model.find(1);
   });
 
@@ -41,7 +42,7 @@ test("sideloading works with camelized attributes", function(assert) {
   Model.load([{id: 1, camel_case: "Dromedary"}]);
 
   var record;
-  Ember.run(function() {
+  run(function() {
     record = Model.find(1);
   });
 
@@ -66,7 +67,7 @@ test("sideloading clears sideload and record cache", function(assert) {
   Model.load([{id: 1, name: "Erik", worth: 123456789}]);
 
   var record;
-  Ember.run(function() {
+  run(function() {
     record = Model.find(1);
   });
 
@@ -77,7 +78,7 @@ test("sideloading clears sideload and record cache", function(assert) {
 
   Model.load([{id: 1, name: "Erik", worth: 987654321}]);
 
-  Ember.run(function() {
+  run(function() {
     record = Model.find(1);
   });
 

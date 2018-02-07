@@ -1,4 +1,6 @@
-import {module, test} from 'qunit';
+import { later, run } from '@ember/runloop';
+import { Promise as EmberPromise } from 'rsvp';
+import { module, test } from 'qunit';
 var attr = Ember.attr;
 
 module("Ember.EmbeddedHasManyArray - embedded objects saving");
@@ -28,8 +30,8 @@ test("derp", function(assert) {
   Comment.adapter = {
 
     createRecord: function(record) {
-      return new Ember.RSVP.Promise(function(resolve, reject) {
-        Ember.run.later(function() {
+      return new EmberPromise(function(resolve, reject) {
+        later(function() {
           record.load(4, {text: 'quattro'});
           record.didCreateRecord();
           resolve(record);
@@ -38,8 +40,8 @@ test("derp", function(assert) {
     },
 
     saveRecord: function(record) {
-      return new Ember.RSVP.Promise(function(resolve, reject) {
-        Ember.run.later(function() {
+      return new EmberPromise(function(resolve, reject) {
+        later(function() {
           record.didSaveRecord();
           resolve(record);
         }, 1);
@@ -48,16 +50,16 @@ test("derp", function(assert) {
   };
 
   var article = Article.create();
-  Ember.run(article, article.load, json.id, json);
+  run(article, article.load, json.id, json);
 
   var comments = article.get('comments');
-  var newComment = Ember.run(comments, comments.create, {text: 'quattro'});
+  var newComment = run(comments, comments.create, {text: 'quattro'});
 
   assert.equal(comments.get('length'), 4);
   assert.ok(newComment instanceof Comment);
-  assert.deepEqual(Ember.run(comments, comments.mapBy, 'text'), ['uno', 'dos', 'tres', 'quattro']);
+  assert.deepEqual(run(comments, comments.mapBy, 'text'), ['uno', 'dos', 'tres', 'quattro']);
 
-  Ember.run(function() {
+  run(function() {
     let done = assert.async();
     comments.save().then(function(record) {
       done();
@@ -89,7 +91,7 @@ test("new records should remain after parent is saved", function(assert) {
   Article.adapter = Ember.RESTAdapter.create();
   Article.url = '/articles';
   Article.adapter._ajax = function() {
-    return new Ember.RSVP.Promise(function(resolve) {
+    return new EmberPromise(function(resolve) {
       resolve(json);
     });
   };
@@ -102,7 +104,7 @@ test("new records should remain after parent is saved", function(assert) {
     text: 'comment text'
   });
   article.get('comments').addObject(comment);
-  var promise = Ember.run(article, article.save);
+  var promise = run(article, article.save);
   promise.then(function(record) {
     done();
     assert.ok(record.get('comments.firstObject') === comment, "Comment is the same object");
