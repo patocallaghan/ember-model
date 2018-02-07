@@ -1,7 +1,8 @@
+import {module, test} from 'qunit';
 var CustomModel;
 
 module("Ember.CustomAdapter", {
-  setup: function() {
+  beforeEach: function() {
     Ember.CustomAdapter = Ember.Adapter.extend();
     CustomModel = Ember.Model.extend({
       name: Ember.attr()
@@ -10,10 +11,10 @@ module("Ember.CustomAdapter", {
   }
 });
 
-test("throws an error message with class name", function() {
-  expect(1);
+test("throws an error message with class name", function(assert) {
+  assert.expect(1);
 
-  throws(function() {
+  assert.throws(function() {
     Ember.run(CustomModel, CustomModel.find(1));
   }, /Ember.CustomAdapter must implement find/);
 });

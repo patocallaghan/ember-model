@@ -1,7 +1,8 @@
+import {module, test} from 'qunit';
 module("Ember.Adapter#findAll");
 
-test("Model.find() delegates to Adapter#findAll", function() {
-  expect(7);
+test("Model.find() delegates to Adapter#findAll", function(assert) {
+  assert.expect(7);
 
   var Model = Ember.Model.extend({
     name: Ember.attr()
@@ -12,22 +13,22 @@ test("Model.find() delegates to Adapter#findAll", function() {
   ];
 
   var records = Ember.run(Model, Model.find);
-  ok(records instanceof Ember.RecordArray, "RecordArray is returned");
-  ok(!records.get('isLoaded'));
-  ok(records.get('isLoading'));
-  stop();
+  assert.ok(records instanceof Ember.RecordArray, "RecordArray is returned");
+  assert.ok(!records.get('isLoaded'));
+  assert.ok(records.get('isLoading'));
+  let done = assert.async();
 
   records.on('didLoad', function() {
-    start();
+    done();
     // equal(records.get('firstObject.id'), 1); // TODO: built-in CP for primaryKey
-    equal(records.get('firstObject.name'), 'Erik');
-    ok(records.get('firstObject.isLoaded'));
-    ok(records.get('isLoaded'));
-    ok(!records.get('isLoading'));
+    assert.equal(records.get('firstObject.name'), 'Erik');
+    assert.ok(records.get('firstObject.isLoaded'));
+    assert.ok(records.get('isLoaded'));
+    assert.ok(!records.get('isLoading'));
   });
 });
 
-test("Model.find() returns the same RecordArray for each successful call", function() {
+test("Model.find() returns the same RecordArray for each successful call", function(assert) {
   var Model = Ember.Model.extend();
   Model.adapter = {
     findAll: Ember.RSVP.resolve
@@ -36,10 +37,10 @@ test("Model.find() returns the same RecordArray for each successful call", funct
   var firstResult = Model.find();
   var secondResult = Model.find();
 
-  equal(firstResult, secondResult, "The same RecordArray was returned");
+  assert.equal(firstResult, secondResult, "The same RecordArray was returned");
 });
 
-test("Model.find() returns a new RecordArray if the last call failed", function() {
+test("Model.find() returns a new RecordArray if the last call failed", function(assert) {
   var Model = Ember.Model.extend();
   Model.adapter = {
     findAll: Ember.RSVP.reject
@@ -51,5 +52,5 @@ test("Model.find() returns a new RecordArray if the last call failed", function(
   });
   secondResult = Model.find();
 
-  notEqual(firstResult, secondResult, "A new RecordArray was returned");
+  assert.notEqual(firstResult, secondResult, "A new RecordArray was returned");
 });

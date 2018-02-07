@@ -1,3 +1,4 @@
+import {module, test} from 'qunit';
 var Model, container;
 
 function ajaxSuccess(data) {
@@ -7,7 +8,7 @@ function ajaxSuccess(data) {
 }
 
 module("Ember.RecordArray", {
-  setup: function() {
+  beforeEach: function() {
     Model = Ember.Model.extend({
       id: Ember.attr(),
       name: Ember.attr()
@@ -20,34 +21,34 @@ module("Ember.RecordArray", {
     ];
     container = new Ember.Registry().container();
   },
-  teardown: function() { }
+  afterEach: function() { }
 });
 
-test("load creates records with container when container exists", function() {
+test("load creates records with container when container exists", function(assert) {
   var records = Ember.RecordArray.create({modelClass: Model, container: container});
   Ember.run(records, records.load, Model, Model.FIXTURES);
   records.forEach(function(record){
-    ok(record.get('isLoaded'));
-    ok(record.get('container'));
+    assert.ok(record.get('isLoaded'));
+    assert.ok(record.get('container'));
   });
 });
 
-test("when called with findMany, should contain an array of the IDs contained in the RecordArray", function() {
+test("when called with findMany, should contain an array of the IDs contained in the RecordArray", function(assert) {
   var records = Ember.run(Model, Model.find, [1,2,3]);
 
-  deepEqual(records.get('_ids'), [1,2,3]);
-  equal(records.get('length'), 0);
-  ok(!records.get('isLoaded'));
-  stop();
+  assert.deepEqual(records.get('_ids'), [1,2,3]);
+  assert.equal(records.get('length'), 0);
+  assert.ok(!records.get('isLoaded'));
+  let done = assert.async();
 
   records.one('didLoad', function() {
-    start();
-    equal(records.get('length'), 3);
+    done();
+    assert.equal(records.get('length'), 3);
   });
 });
 
-test("findAll RecordArray implements reload", function() {
-  expect(4);
+test("findAll RecordArray implements reload", function(assert) {
+  assert.expect(4);
 
   var data = [
         {id: 1, name: 'Erik'},
@@ -71,7 +72,7 @@ test("findAll RecordArray implements reload", function() {
     records = RESTModel.findAll();
   });
 
-  equal(records.get('length'), 2);
+  assert.equal(records.get('length'), 2);
 
   data.push({id: 3, name: 'Ray'});
   data[1].name = 'Amos';
@@ -80,14 +81,14 @@ test("findAll RecordArray implements reload", function() {
     records.reload();
   });
 
-  equal(records.get('length'), 3);
-  ok(records.get('isLoaded'));
-  deepEqual(RESTModel.find(2).toJSON(), {id: 2, name: 'Amos'});
+  assert.equal(records.get('length'), 3);
+  assert.ok(records.get('isLoaded'));
+  assert.deepEqual(RESTModel.find(2).toJSON(), {id: 2, name: 'Amos'});
 
 });
 
-test("findQuery RecordArray implements reload", function() {
-  expect(4);
+test("findQuery RecordArray implements reload", function(assert) {
+  assert.expect(4);
 
   var data = [
         {id: 1, name: 'Erik'},
@@ -111,7 +112,7 @@ test("findQuery RecordArray implements reload", function() {
     records = RESTModel.findQuery({name: 'Erik'});
   });
 
-  equal(records.get('length'), 2);
+  assert.equal(records.get('length'), 2);
 
   data.push({id: 3, name: 'Ray'});
   data[1].name = 'Amos';
@@ -120,14 +121,14 @@ test("findQuery RecordArray implements reload", function() {
     records.reload();
   });
 
-  equal(records.get('length'), 3);
-  ok(records.get('isLoaded'));
-  deepEqual(RESTModel.find(2).toJSON(), {id: 2, name: 'Amos'});
+  assert.equal(records.get('length'), 3);
+  assert.ok(records.get('isLoaded'));
+  assert.deepEqual(RESTModel.find(2).toJSON(), {id: 2, name: 'Amos'});
 
 });
 
-test("findMany RecordArray implements reload", function() {
-  expect(4);
+test("findMany RecordArray implements reload", function(assert) {
+  assert.expect(4);
 
   var data = [
         {id: 1, name: 'Erik'},
@@ -155,7 +156,7 @@ test("findMany RecordArray implements reload", function() {
     records = RESTModel.find([1,2]);
   });
 
-  equal(records.get('length'), 2);
+  assert.equal(records.get('length'), 2);
 
   data[1].name = 'Amos';
 
@@ -163,14 +164,14 @@ test("findMany RecordArray implements reload", function() {
     records.reload();
   });
 
-  equal(records.get('length'), 2);
-  ok(records.get('isLoaded'));
-  deepEqual(RESTModel.find(2).toJSON(), {id: 2, name: 'Amos'});
+  assert.equal(records.get('length'), 2);
+  assert.ok(records.get('isLoaded'));
+  assert.deepEqual(RESTModel.find(2).toJSON(), {id: 2, name: 'Amos'});
 
 });
 
-test("reload handles record removal", function() {
-  expect(4);
+test("reload handles record removal", function(assert) {
+  assert.expect(4);
 
   var data = [
         {id: 1, name: 'Erik'},
@@ -195,7 +196,7 @@ test("reload handles record removal", function() {
     records = RESTModel.findAll();
   });
 
-  equal(records.get('length'), 3);
+  assert.equal(records.get('length'), 3);
 
   data.splice(1, 1);
 
@@ -203,13 +204,13 @@ test("reload handles record removal", function() {
     records.reload();
   });
 
-  equal(records.get('length'), 2);
-  deepEqual(records.objectAt(0).toJSON(), {id: 1, name: 'Erik'});
-  deepEqual(records.objectAt(1).toJSON(), {id: 3, name: 'Ray'});
+  assert.equal(records.get('length'), 2);
+  assert.deepEqual(records.objectAt(0).toJSON(), {id: 1, name: 'Erik'});
+  assert.deepEqual(records.objectAt(1).toJSON(), {id: 3, name: 'Ray'});
 });
 
-test("RecordArray handles already inserted new models being saved", function() {
-  expect(3);
+test("RecordArray handles already inserted new models being saved", function(assert) {
+  assert.expect(3);
 
   var data = [
         {id: 1, name: 'Erik'}
@@ -232,7 +233,7 @@ test("RecordArray handles already inserted new models being saved", function() {
     records = RESTModel.findAll();
   });
 
-  equal(records.get('length'), 1);
+  assert.equal(records.get('length'), 1);
 
   var newModel = RESTModel.create();
 
@@ -242,6 +243,6 @@ test("RecordArray handles already inserted new models being saved", function() {
     newModel.save();
   });
 
-  equal(records.get('length'), 2);
-  equal(records.objectAt(1), newModel);
+  assert.equal(records.get('length'), 2);
+  assert.equal(records.objectAt(1), newModel);
 });
